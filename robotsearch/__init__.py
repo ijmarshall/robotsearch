@@ -1,0 +1,19 @@
+import logging
+import os
+import json
+
+def str2bool(v):
+  return v.lower() in ("yes", "true", "t", "1")
+
+DEBUG_MODE = str2bool(os.environ.get("DEBUG", "true"))
+LOG_LEVEL = (logging.DEBUG if DEBUG_MODE else logging.INFO)
+_ROOT = os.path.abspath(os.path.dirname(__file__))
+DATA_ROOT = os.path.join(_ROOT, 'data')
+
+logging.basicConfig(level=LOG_LEVEL, format='[%(levelname)s] %(name)s %(asctime)s: %(message)s')
+log = logging.getLogger(__name__)
+log.info("Welcome to RobotData :)")
+
+with open(os.path.join(_ROOT, 'config.json'), 'r') as f:
+    config = json.load(f)['robotsearch']
+

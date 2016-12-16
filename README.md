@@ -24,7 +24,7 @@ Then see the instructions below about how to export.
 ## Exporting from Ovid
 
 ![1. Exporting from Ovid - select 'All' in the top left, then click the Export text](ovid_export1.png)
-![2. Exporting from Ovid - select 'RIS' as the export format, then select 'Custom Fields', and click the 'Select Fields' button](ovid_export2.png)
+![2. Exporting from Ovid - select 'EndNote' as the export format, then select 'Custom Fields', and click the 'Select Fields' button](ovid_export2.png) (**Endnote** format includes the 'publication type' field, the **RIS** format does not)
 ![2. Exporting from Ovid - select the following 3 fields to export: *ab*: Abstract, *pt*: Publication Type, and *ti*: Title](ovid_export3.png)
 
 1. Click the tickbox next to **'All'** above the search results on the left hand side.

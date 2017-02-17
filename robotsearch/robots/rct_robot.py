@@ -20,7 +20,7 @@ import json
 import uuid
 import os
 
-import pickle 
+import pickle
 
 import robotsearch
 from robotsearch.ml.classifier import MiniClassifier
@@ -47,7 +47,7 @@ from keras.regularizers import l2, activity_l2
 from keras.models import model_from_json
 
 
-class KerasVectorizer(VectorizerMixin):    
+class KerasVectorizer(VectorizerMixin):
     def __init__(self, input='content', encoding='utf-8',
                  decode_error='strict', strip_accents=None,
                  lowercase=True, preprocessor=None, tokenizer=None,
@@ -68,7 +68,7 @@ class KerasVectorizer(VectorizerMixin):
         self.embedding_dim = embedding_inits.syn0.shape[1] if embedding_inits else None
         with open(vocab_map_file, 'rb') as f:
             self.vocab_map = pickle.load(f)
-        
+
     def transform(self, raw_documents, maxlen=400):
         """
         returns lists of integers
@@ -92,11 +92,11 @@ class RCTRobot:
     def __init__(self):
         self.svm_clf = MiniClassifier(os.path.join(robotsearch.DATA_ROOT, 'rct/rct_svm_weights.npz'))
 
-        
+
 
         cnn_weight_files = glob.glob(os.path.join(robotsearch.DATA_ROOT, 'rct/*.h5'))
         json_filename = os.path.join(robotsearch.DATA_ROOT, 'rct/rct_cnn_structure.json')
-        self.cnn_clfs = [get_model(json_filename, cnn_weight_file) for cnn_weight_file in cnn_weight_files]        
+        self.cnn_clfs = [get_model(json_filename, cnn_weight_file) for cnn_weight_file in cnn_weight_files]
         self.svm_vectorizer = HashingVectorizer(binary=False, ngram_range=(1, 1), stop_words='english')
         self.cnn_vectorizer = KerasVectorizer(vocab_map_file=os.path.join(robotsearch.DATA_ROOT, 'rct/rct_cnn_vocab_map.pck'))
 
@@ -109,7 +109,7 @@ class RCTRobot:
                                 "cnn": {"mean": 0.15549565997665432,
                                         "std": 0.22064840347497616,
                                         "weight": 1.}} # weighted in mean since we use only 1 model (since produces near identical results to binning 10)
- 
+
         self.thresholds = {"svm": {"precise": 1.9487503268,
                                    "sensitive": -0.12860007792},
                            "svm_ptyp": {"precise": 4.01565491262,
@@ -126,19 +126,21 @@ class RCTRobot:
         # All precise models have been calibrated to 97.6% sensitivity
         # All sensitive models have been calibrated to 99.1% sensitivity
 
-                                        
 
 
 
 
-    def filter_articles(self, ris_data, filter_class="svm", filter_type='precise'):
 
+    def filter_articles(self, ris_string, filter_class="svm", filter_type='precise'):
+        print('Parsing RIS data')
+        ris_data = ris.loads(ris_string)
         simplified = [ris.simplify(article) for article in ris_data]
 
         X_ti_str = [article.get('title', '') for article in simplified]
-        X_ab_str = ['{}\n\n{}'.format(article.get('title', ''), article.get('abstract', '')) for article in simplified]    
+        X_ab_str = ['{}\n\n{}'.format(article.get('title', ''), article.get('abstract', '')) for article in simplified]
 
         if "svm" in filter_class:
+            print('Running SVM model')
 
             X_ti = lil_matrix(self.svm_vectorizer.transform(X_ti_str))
             X_ab = lil_matrix(self.svm_vectorizer.transform(X_ab_str))
@@ -147,16 +149,21 @@ class RCTRobot:
             svm_scale =  (svm_preds - self.scale_constants['svm']['mean']) / self.scale_constants['svm']['std']
 
         if "ptyp" in filter_class:
+            print('Retrieving Publication Type information')
             ptyp = np.array([(article.get('rct_ptyp')==True)*1. for article in simplified])
             ptyp_scale =  (ptyp - self.scale_constants['ptyp']['mean']) / self.scale_constants['ptyp']['std']
 
         if "cnn" in filter_class:
-            X_cnn = self.cnn_vectorizer.transform(X_ab_str)            
-            cnn_preds = [clf.predict(X_cnn).T[0] for clf in self.cnn_clfs]
-            
-        
+            print('Running CNN models...')
+            X_cnn = self.cnn_vectorizer.transform(X_ab_str)
+            cnn_preds = []
+            for i, clf in enumerate(self.cnn_clfs):
+                print('\t{} of {}'.format(i+1, len(self.cnn_clfs)))
+                cnn_preds.append(clf.predict(X_cnn).T[0])
+
+
             cnn_preds = np.vstack(cnn_preds)
-            
+
             cnn_scale =  (cnn_preds - self.scale_constants['cnn']['mean']) / self.scale_constants['cnn']['std']
 
         if filter_class == "svm":
@@ -169,10 +176,11 @@ class RCTRobot:
             weights = [self.scale_constants['svm']['weight']] + ([self.scale_constants['cnn']['weight']] * len(self.cnn_clfs))
             y_preds = np.average(np.vstack([cnn_scale, svm_scale]), axis=0, weights=weights) + ptyp_scale
 
-        
-        return [article for article, y_pred in zip(ris_data, y_preds) if y_pred > self.thresholds[filter_class][filter_type]]
 
-    
+        return ris.dumps([article for article, y_pred in zip(ris_data, y_preds)
+                          if y_pred > self.thresholds[filter_class][filter_type]])
+
+
 
 
 

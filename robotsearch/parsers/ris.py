@@ -20,11 +20,11 @@ def iter_load_ris(iterable):
 
     needle_down = False # record player metaphor...
     entry_builder = OrderedDict()
-        
+
     for line in iterable:
-        if needle_down == False and ris_re.match(line):            
+        if needle_down == False and ris_re.match(line):
             needle_down = True
-        elif needle_down == True and line.strip()=="":            
+        elif needle_down == True and line.strip()=="":
             new_entry = OrderedDict()
             for k, v in entry_builder.items():
                 new_entry[k] = v
@@ -32,11 +32,11 @@ def iter_load_ris(iterable):
             entry_builder = OrderedDict()
             needle_down = False
 
-        if needle_down:            
+        if needle_down:
             key = line[:4].rstrip()
             value = line[6:].rstrip()
 
-            if key == '':                
+            if key == '':
                 # for pubmed style newline/tabbed continuation
                 # print(last_key)
                 # break
@@ -58,7 +58,7 @@ def iter_load_ris(iterable):
 
 
 
-    
+
 
 def load(ris_file_obj):
     return [i for i in iter_load_ris(ris_file_obj)]
@@ -89,7 +89,7 @@ def simplify(article, strict=False):
 
     # When strict=True, exceptions are raised
     # else empty data returned with a status message field
-    
+
     try:
         # this should work for both PubMed and the Ovid/Endnote format
         out = {"title": ' '.join(article['TI']),
@@ -104,7 +104,7 @@ def simplify(article, strict=False):
                    "format": "unrecognised"}
         else:
             raise Exception('Data was not recognised as either an Ovid or PubMed article')
-            
+
 
 
     return out

@@ -8,9 +8,22 @@ RobotSearch uses machine learning as an alternative to string-based study design
 
 It works with MEDLINE searches exported from either PubMed or Ovid. 
 
-You should conduct your search as normal (NB do not use any search terms or filters to restrict to RCTs at this stage!).
+1. You should conduct your search as normal (NB do not use any search terms or filters to restrict to RCTs at this stage!).
 
-Then see the instructions below about how to export.
+2. Then export your results in RIS format (see more detailed instrutions below on how to do this in PubMed and Ovid)
+
+3. From the command line/terminal, run the robotsearch command:
+`./robotsearch.py my_file.ris`
+
+4. Your search results will be saved as `my_file_robotreviewer_RCTs.ris`
+
+## Notes
+
+By default, RobotReviewer runs a *sensitive* search (i.e. very high likelihood that *all* RCTs will be retrieved, at expense of sometimes including non-RCTs) - this is suitable for a systematic review.
+
+To run a *precise* search (i.e. the retrieved articles have a very high likelihood of being RCTs, but at the expense of missing a tiny proportion), run with an extra `-p` flag, e.g.:
+
+`./robotsearch.py my_file.ris -p`
 
 ## Exporting from PubMed
 

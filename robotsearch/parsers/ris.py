@@ -75,7 +75,7 @@ def dumps(ris_list):
         for k, v_list in article.items():
             for v in v_list:
                 out.append('{}  - {}'.format(k, v))
-        out.append('\n')
+        out.append('\n\n\n')
 
     return '\n'.join(out)
 

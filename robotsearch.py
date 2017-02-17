@@ -5,11 +5,13 @@ import robotsearch
 import argparse
 import os
 import logging
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='RobotReviewer RCT filter: retrieves the RCTs from a database search result with state-of-the-art accuracy')
 parser.add_argument("input_filename", help='name of RIS file to take as input')
+parser.add_argument("-s", "--sensitive", action='store_true', help='Aim for high sensitivity (i.e. for systematic reviews)', required=False)
+parser.add_argument("-p", "--precise", action='store_true', help='Aim for high precision (i.e. for rapid reviews/clinical question answering', required=False)
 args = parser.parse_args()
 
 
@@ -23,6 +25,7 @@ print("""
 """)
 print("Welcome to the RobotReviewer RCT filter :)\n\n")
 
+
 if not os.path.isfile(args.input_filename):
     print("Sorry can't find the file '{}' - does it exist, and have you entered the path?".format('args.input_filename'))
     exit()
@@ -34,9 +37,39 @@ output_filename = "{}_robotreviewer_RCTs{}".format(*input_file_parts)
 if os.path.isfile(output_filename):
     print("The file '{}' already exists --- have you already run RobotReviewer on this input? If you wish to run again, please rename, move or delete '{}' to something else".format(output_filename, output_filename))
     exit()
-if args.input_filename == 'magic.name':
-    print ('You nailed it!')
+
+if args.precise and args.sensitive:
+    print("Please choose either sensitive or precise search (i.e. don't run with both `-p` and `-s` arguments")
+    exit()
+elif args.precise:
+    print("Using the precise strategy")
+    filter_class = "cnn_ptyp"
+    threshold = "precise"
+
+else:
+    print("Using the sensitive strategy")
+    filter_class = "svm_ptyp"
+    threshold = "sensitive"
+
+
 
 log.info('Starting up the robots...')
 from robotsearch.robots import rct_robot
 rct_bot = rct_robot.RCTRobot()
+
+log.info('Loading the RIS input file')
+with open(args.input_filename, 'r') as f:
+    input_text = f.read()
+
+log.info('Finding RCTs...')
+output = rct_bot.filter_articles(input_text, filter_class, threshold)
+
+log.info('Writing the output to {}'.format(output_filename))
+with open(output_filename, 'w') as f:
+    f.write(output)
+
+log.info('Finished :) Good bye!')
+
+
+
+

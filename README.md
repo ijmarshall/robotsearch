@@ -49,3 +49,8 @@ To run a *precise* search (i.e. the retrieved articles have a very high likeliho
 7. Click 'Export Citation(s)' in the bottom right
 8. The citations will be exported, but there may be a wait of a minute or two.
 
+
+Support
+-------
+
+This work is supported by: National Institutes of Health (NIH) under the National Library of Medicine, grant R01-LM012086-01A1, "Semi-Automating Data Extraction for Systematic Reviews", and by NIH grant 5UH2CA203711-02, "Crowdsourcing Mark-up of the Medical Literature to Support Evidence-Based Medicine and Develop Automated Annotation Capabilities", and the UK Medical Research Council (MRC), through its Skills Development Fellowship program, grant MR/N015185/1

@@ -36,6 +36,7 @@ from sklearn.feature_extraction.text import VectorizerMixin
 from sklearn.base import ClassifierMixin
 from keras.preprocessing import sequence
 from collections import Counter
+from keras.models import load_model
 from keras.models import Sequential
 from keras.preprocessing import sequence
 from keras.layers import Dense, Dropout, Activation, Lambda, Input, merge, Flatten
@@ -43,8 +44,8 @@ from keras.layers import Embedding
 from keras.layers import Convolution1D, MaxPooling1D
 from keras import backend as K
 from keras.models import Model
-from keras.regularizers import l2, activity_l2
-from keras.models import model_from_json
+from keras.regularizers import l2
+
 
 
 class KerasVectorizer(VectorizerMixin):
@@ -79,106 +80,320 @@ class KerasVectorizer(VectorizerMixin):
         return sequence.pad_sequences(int_lists, maxlen=maxlen)
 
 
-def get_model(json_filename, weights_filename):
-    with open(json_filename, 'r') as f:
-        json_string = json.load(f)
-    model = model_from_json(json_string)
-    model.load_weights(weights_filename)
-    return model
+
 
 
 class RCTRobot:
 
     def __init__(self):
         self.svm_clf = MiniClassifier(os.path.join(robotsearch.DATA_ROOT, 'rct/rct_svm_weights.npz'))
-
-
-
-        cnn_weight_files = glob.glob(os.path.join(robotsearch.DATA_ROOT, 'rct/*.h5'))
-        json_filename = os.path.join(robotsearch.DATA_ROOT, 'rct/rct_cnn_structure.json')
-        self.cnn_clfs = [get_model(json_filename, cnn_weight_file) for cnn_weight_file in cnn_weight_files]
+        cnn_weight_files = glob.glob(os.path.join(robotsearch.DATA_ROOT, 'rct/*.h5'))        
+        self.cnn_clfs = [load_model(cnn_weight_file) for cnn_weight_file in cnn_weight_files]
         self.svm_vectorizer = HashingVectorizer(binary=False, ngram_range=(1, 1), stop_words='english')
-        self.cnn_vectorizer = KerasVectorizer(vocab_map_file=os.path.join(robotsearch.DATA_ROOT, 'rct/rct_cnn_vocab_map.pck'))
+        self.cnn_vectorizer = KerasVectorizer(vocab_map_file=os.path.join(robotsearch.DATA_ROOT, 'rct/cnn_vocab_map.pck'), stop_words='english')
+        with open(os.path.join(robotsearch.DATA_ROOT, 'rct/rct_model_calibration.json'), 'r') as f:
+            self.constants = json.load(f)
 
-        self.scale_constants = {'cnn': {'mean': -0.75481403525485891,
-                                'std': 0.7812955939364481,
-                                'weight': 1.6666666666666667},
-                                'ptyp': {'mean': -0.75481403525485891, 'std': 0.7812955939364481},
-                                'svm': {'mean': -0.75481403525485891,
-                                'std': 0.7812955939364481,
-                                'weight': 10.0}} # weighted in mean since we use only 1 model (since produces near identical results to binning 10)
+    def _process_ptyp(self, data_row, strict=True):
+        """
+        Takes in a data row which might include rct_ptyp
+        or ptyp fields.
+        If strict=True, then raises exception when passed any
+        contradictory data
+        Returns: 1 = ptyp is RCT
+                 0 = ptyp is NOT RCT
+                 -1 = no ptyp information present
+        """
+        rct_ptyp = -1
 
-        self.thresholds = {'cnn': {'precise': 2.1340457758193034,
-              'sensitive': -0.076709540491855063},
-             'cnn_ptyp': {'precise': 3.529609848417909,
-              'sensitive': 0.083502632442633312},
-             'svm': {'precise': 1.9185522606237164,
-              'sensitive': 0.093273630980694439},
-             'svm_cnn': {'precise': 1.8749128673557529,
-              'sensitive': 0.064481902000491614},
-             'svm_cnn_ptyp': {'precise': 3.7674045603568755,
-              'sensitive': 0.1952449060483534},
-             'svm_ptyp': {'precise': 3.7358855328111837,
-              'sensitive': 0.42992224964656178}}
+        if "ptyp" in data_row:
+            rct_ptyp = 1 if "Randomized Controlled Trial" in data_row else 0
 
-        # All precise models have been calibrated to 97.6% sensitivity
-        # All sensitive models have been calibrated to 99.1% sensitivity
+        if "rct_ptyp" in data_row:
+            rct_ptyp_2 = 1 if data_row["rct_ptyp"] else 0
 
-
-
+            if strict and rct_ptyp != -1 and rct_ptyp != rct_ptyp2:                
+                raise AttributeError("Publication Type information error: `ptyp` and `rct_ptyp` are contradicting")
+            
+            rct_ptyp = rct_ptyp_2
+   
+        return rct_ptyp
 
 
+    def predict(self, X, filter_class="svm", filter_type="sensitive", auto_use_ptyp=True, debug_info=True):
 
-    def filter_articles(self, ris_string, filter_class="svm", filter_type='precise'):
-        print('Parsing RIS data')
-        ris_data = ris.loads(ris_string)
-        simplified = [ris.simplify(article) for article in ris_data]
+        debug_log = {}
 
-        X_ti_str = [article.get('title', '') for article in simplified]
-        X_ab_str = ['{}\n\n{}'.format(article.get('title', ''), article.get('abstract', '')) for article in simplified]
+        if isinstance(X, dict):
+            X = [X]
+
+        if auto_use_ptyp:
+            pt_mask = np.array([self._process_ptyp(r) for r in X])
+        else:
+            # don't add for any of them
+            pt_mask = np.array([-1 for r in X])
+            # print(pt_mask)
+        
+        # calculate ptyp for all
+        ptyp = np.array([(article.get('rct_ptyp')==True)*1. for article in X])
+        ptyp_scale = (ptyp - self.constants['scales']['ptyp']['mean']) / self.constants['scales']['ptyp']['std']
+        # but set to 0 if not using
+        ptyp_scale[pt_mask==-1] = 0
+    
+        # thresholds vary per article
+        thresholds = []
+        for r in pt_mask:
+            if r != -1:
+                thresholds.append(self.constants['thresholds']["{}_ptyp".format(filter_class)][filter_type])
+            else:
+                thresholds.append(self.constants['thresholds'][filter_class][filter_type])
+        
+        X_ti_str = [article.get('title', '') for article in X]
+        X_ab_str = ['{}\n\n{}'.format(article.get('title', ''), article.get('abstract', '')) for article in X]
 
         if "svm" in filter_class:
-            print('Running SVM model')
-
+            # print('Running SVM model')
             X_ti = lil_matrix(self.svm_vectorizer.transform(X_ti_str))
             X_ab = lil_matrix(self.svm_vectorizer.transform(X_ab_str))
-
-            svm_preds = self.svm_clf.decision_function(hstack([X_ti, X_ab]))
-            svm_scale =  (svm_preds - self.scale_constants['svm']['mean']) / self.scale_constants['svm']['std']
-
-        if "ptyp" in filter_class:
-            print('Retrieving Publication Type information')
-            ptyp = np.array([(article.get('rct_ptyp')==True)*1. for article in simplified])
-            ptyp_scale =  (ptyp - self.scale_constants['ptyp']['mean']) / self.scale_constants['ptyp']['std']
+            svm_preds = self.svm_clf.decision_function(hstack([X_ab, X_ti]))
+            svm_scale =  (svm_preds - self.constants['scales']['svm']['mean']) / self.constants['scales']['svm']['std']    
 
         if "cnn" in filter_class:
-            print('Running CNN models...')
+            # print('Running CNN models...')
             X_cnn = self.cnn_vectorizer.transform(X_ab_str)
             cnn_preds = []
             for i, clf in enumerate(self.cnn_clfs):
                 print('\t{} of {}'.format(i+1, len(self.cnn_clfs)))
                 cnn_preds.append(clf.predict(X_cnn).T[0])
 
-
             cnn_preds = np.vstack(cnn_preds)
-
-            cnn_scale =  (cnn_preds - self.scale_constants['cnn']['mean']) / self.scale_constants['cnn']['std']
+            cnn_scale =  (cnn_preds - self.constants['scales']['cnn']['mean']) / self.constants['scales']['cnn']['std']
+            debug_log["cnn_models"] = cnn_scale
+            debug_log["cnn_raw"] = cnn_preds
 
         if filter_class == "svm":
-            y_preds = svm_scale
-        elif filter_class == "svm_ptyp":
-            y_preds = svm_scale + ptyp_scale
-        elif filter_class == "cnn_ptyp":
-            y_preds = np.mean(cnn_scale, axis=0) + ptyp_scale
-        elif filter_class == "ptyp":
-            y_preds = ptyp_scale
-        elif filter_class == "svm_cnn_ptyp":
-            weights = [self.scale_constants['svm']['weight']] + ([self.scale_constants['cnn']['weight']] * len(self.cnn_clfs))
-            y_preds = np.average(np.vstack([cnn_scale, svm_scale]), axis=0, weights=weights) + ptyp_scale
+            y_preds = svm_scale  
+        elif filter_class == "cnn":
+            y_preds = np.mean(cnn_scale, axis=0)
+        elif filter_class == "svm_cnn":
+            weights = [self.constants['scales']['svm']['weight']] + ([self.constants['scales']['cnn']['weight']] * len(self.cnn_clfs))
+            y_preds = np.average(np.vstack([svm_scale, cnn_scale]), axis=0, weights=weights)
+
+        y_preds += ptyp_scale
+
+        out = []
+        for pred, threshold, used_ptyp in zip(y_preds, thresholds, pt_mask):
+            row = {}
+            row['score'] = float(pred)
+            if used_ptyp != -1:
+                row['model'] = "{}_ptyp".format(filter_class)
+            else:
+                row['model'] = filter_class
+            row['threshold_type'] = filter_type
+            # row['vec'] = vec
+            row['threshold_value'] = float(threshold)
+            row['is_rct'] = bool(pred >= threshold)
+            row['ptyp_rct'] = int(used_ptyp)
+            if debug_info:
+                row['debug'] = debug_log
+            out.append(row)
+        return out
+
+    def predict_ris(self, ris_string, filter_class="svm", filter_type='precise', auto_use_ptyp=False):
+
+        print('Parsing RIS data')        
+        ris_data = ris.loads(ris_string)
+        simplified = [ris.simplify(article) for article in ris_data]
+        preds = self.predict(simplified, filter_class=filter_class, filter_type=filter_type, auto_use_ptyp=auto_use_ptyp)
+        return preds
 
 
-        return ris.dumps([article for article, y_pred in zip(ris_data, y_preds)
-                          if y_pred > self.thresholds[filter_class][filter_type]])
+    def filter_articles(self, ris_string, filter_class="svm", filter_type='precise', auto_use_ptyp=False, remove_non_rcts=True):
+        preds = self.predict_ris(ris_string, filter_class=filter_class, filter_type=filter_type, auto_use_ptyp=auto_use_ptyp)
+        # out = []
+        # for ris_row, pred_row in zip(ris_data, preds):            
+            # if remove_non_rcts==False or pred_row['is_rct']:
+                # ris_row.update(pred_row)
+                # out.append(ris_row)
+
+        return json.dumps(preds)#ris.dumps(preds)
+
+
+def test_calibration():
+    print("Testing RobotSearch...")
+    target_classes = ["svm", "cnn", "svm_cnn"]
+    target_modes = ["balanced", "precise", "sensitive"]
+
+    rct_bot = RCTRobot()
+
+    print("Loading test PubMed file")
+    with open(os.path.join(robotsearch.DATA_ROOT, 'rct/pubmed_test.txt'), 'r') as f:
+        ris_string = f.read()
+
+    print("Loading expected results (from validation paper)")
+    with open(os.path.join(robotsearch.DATA_ROOT, 'rct/pubmed_expected.json'), 'r') as f:
+        expected_results = json.load(f)
+
+
+    
+    for target_class in target_classes:
+        for target_mode in target_modes:
+            for use_ptyp in [True, False]:
+
+                expected_model_class = "{}_ptyp".format(target_class) if use_ptyp else target_class
+
+                print("Testing {} model; use_ptyp={}; mode={}".format(target_class, use_ptyp, target_mode))
+                data = rct_bot.predict_ris(ris_string, filter_class=target_class, filter_type=target_mode, auto_use_ptyp=use_ptyp)
+
+                ris_data = ris.loads(ris_string)
+                exp_pmids = [str(r['PMID'][0]) for r in ris_data]
+                obs_pmids = [str(r['pmid']) for r in expected_results[expected_model_class][target_mode]]
+
+                
+                print("Number matching PMIDS: {}".format(sum([i==j for i, j in zip(exp_pmids, obs_pmids)])))
+
+
+                obs_score = np.array([r['score'] for r in data])
+                obs_clf = np.array([r['is_rct'] for r in data])
+
+
+
+                exp_score = np.array([float(r['score']) for r in expected_results[expected_model_class][target_mode]])
+                exp_clf = np.array([r['is_rct'] for r in expected_results[expected_model_class][target_mode]])
+
+                print("Totals assessed: {} obs, {} exp".format(len(obs_score), len(exp_score)))
+                match_clf = np.sum(np.equal(obs_clf, exp_clf))
+
+                # print(np.equal(obs_clf, exp_clf))
+                
+
+                disag = np.where((np.equal(obs_clf, exp_clf)==False))[0]
+
+                
+                exp_correct = 0
+                obs_correct = 0
+
+                debug_models = []
+                if 'cnn_models' in data[0]['debug']:
+                    show_debug = True
+                    for r in data:
+                        debug_models.append(r.pop('debug'))
+                else:
+                    show_debug = False
+
+
+
+
+                for r in disag:
+                    hedges = True if expected_results[expected_model_class][target_mode][r]['hedges_is_rct']=='1' else False
+                    if expected_results[expected_model_class][target_mode][r]['is_rct'] == hedges:
+                        exp_correct += 1
+                    if data[r]['is_rct'] == hedges:
+                        obs_correct += 1
+                    print("obs: {}".format(data[r]))
+                    print("exp: {}".format(expected_results[expected_model_class][target_mode][r]))
+                    if show_debug:
+                        print(debug_models[0]['cnn_models'][:, r])
+                        print(debug_models[0]['cnn_raw'][:, r])
+
+
+                    
+
+
+
+                print("{}/{} agreement for classification; obs correct = {}, exp correct = {}".format(match_clf, len(obs_clf), obs_correct, exp_correct))
+
+                # print("Disagreements: {}".format(disag))
+
+                    # print("obs: {}".format(data[r]))
+                    # print("exp: {}".format(expected_results[expected_model_class][target_mode][r]))
+
+                abs_score_diffs = np.subtract(obs_score, exp_score)
+                rel_score_diffs = np.subtract(obs_score, exp_score)/exp_score
+
+                print("Mean {}, SD {} absolute difference in scores".format(np.mean(abs_score_diffs), np.std(abs_score_diffs)))
+
+                print("Mean {}, SD {} relative difference in scores".format(np.mean(rel_score_diffs), np.std(rel_score_diffs)))
+
+
+                # print("Saving output")
+                # with open(os.path.join(robotsearch.DATA_ROOT, 'rct/pubmed_test_out_{}_{}.json'.format(target_class, target_mode)), 'w') as f:
+                #     json.dump(data, f)
+
+#     os.path.join(robotsearch.DATA_ROOT, 'rct/rct_svm_weights.npz')
+
+
+
+
+    # def filter_articles(self, ris_string, filter_class="svm", filter_type='precise', auto_use_ptyp=False):
+
+    #     if auto_use_ptyp:
+    #         use_pt = np.array(['rct_ptyp' in r for r in simplified])
+    #     else:
+    #         # don't add for any of them
+    #         use_pt = np.array([False for r in simplified])
+
+
+    #     print(simplified[0])
+        
+    #     print('Retrieving Publication Type information')
+    #     # calculate ptyp for all
+    #     ptyp = np.array([(article.get('rct_ptyp')==True)*1. for article in simplified])
+    #     ptyp_scale = (ptyp - self.constants['scales']['ptyp']['mean']) / self.constants['scales']['ptyp']['std']
+    #     # but set to 0 if not using
+    #     ptyp_scale[use_pt==False] = 0
+    
+    #     # thresholds vary per article
+    #     thresholds = []
+    #     for r in use_pt:
+    #         if r:
+    #             thresholds.append(self.constants['thresholds']["{}_ptyp".format(filter_class)][filter_type])
+    #         else:
+    #             thresholds.append(self.constants['thresholds'][filter_class][filter_type])
+        
+    #     X_ti_str = [article.get('title', '') for article in simplified]
+    #     X_ab_str = ['{}\n\n{}'.format(article.get('title', ''), article.get('abstract', '')) for article in simplified]
+
+    #     if "svm" in filter_class:
+    #         print('Running SVM model')
+    #         X_ti = lil_matrix(self.svm_vectorizer.transform(X_ti_str))
+    #         X_ab = lil_matrix(self.svm_vectorizer.transform(X_ab_str))
+    #         svm_preds = self.svm_clf.decision_function(hstack([X_ab, X_ti]))
+    #         svm_scale =  (svm_preds - self.constants['scales']['svm']['mean']) / self.constants['scales']['svm']['std']    
+
+    #     if "cnn" in filter_class:
+    #         print('Running CNN models...')
+    #         X_cnn = self.cnn_vectorizer.transform(X_ab_str)
+    #         cnn_preds = []
+    #         for i, clf in enumerate(self.cnn_clfs):
+    #             print('\t{} of {}'.format(i+1, len(self.cnn_clfs)))
+    #             cnn_preds.append(clf.predict(X_cnn).T[0])
+
+    #         cnn_preds = np.vstack(cnn_preds)
+    #         cnn_scale =  (cnn_preds - self.constants['scales']['cnn']['mean']) / self.constants['scales']['cnn']['std']
+
+    #     if filter_class == "svm":
+    #         y_preds = svm_scale  
+    #     elif filter_class == "cnn":
+    #         y_preds = np.mean(cnn_scale, axis=0)        
+    #     elif filter_class == "svm_cnn":
+    #         weights = [self.constants['scales']['svm']['weight']] + ([self.constants['scales']['cnn']['weight']] * len(self.cnn_clfs))
+    #         y_preds = np.average(np.vstack([cnn_scale, svm_scale]), axis=0, weights=weights)
+
+    #     y_preds += ptyp_scale
+
+    #     out = []
+    #     for ris_row, pred, threshold, used_ptyp in zip(ris_data, y_preds, thresholds, use_pt):
+    #         ris_row['score'] = [str(pred)]
+    #         if used_ptyp:
+    #             ris_row['model'] = ["{}_ptyp".format(filter_class)]
+    #         else:
+    #             ris_row['model'] = [filter_class]
+    #         ris_row['threshold_type'] = [filter_type]
+    #         ris_row['threshold_value'] = [threshold]
+    #         ris_row['is_rct'] = [pred > threshold]
+    #         out.append(ris_row)
+    #     return ris.dumps(out)
 
 
 

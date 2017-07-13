@@ -93,20 +93,15 @@ def simplify(article, strict=False):
     try:
         # this should work for both PubMed and the Ovid/Endnote format
         out = {"title": ' '.join(article['TI']),
-               "abstract": ' '.join(article.get('AB', [])),
-               "rct_ptyp": "Randomized Controlled Trial" in article.get('PT', []),
-               "format": "pubmed"}
+               "abstract": ' '.join(article.get('AB', []))}
+        if 'PT' in article:
+            out['rct_ptyp'] = "Randomized Controlled Trial" in article['PT']
     except:
         if not strict:
             out = {"title": "",
-                   "abstract": "",
-                   "rct_ptyp": None,
-                   "format": "unrecognised"}
+                   "abstract": ""}                   
         else:
-            raise Exception('Data was not recognised as either an Ovid or PubMed article')
-
-
-
+            raise Exception('Data was not recognised as Ovid or PubMed format')
     return out
 
 

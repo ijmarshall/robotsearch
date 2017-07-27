@@ -15,6 +15,10 @@ parser.add_argument("-p", "--precise", action='store_true', help='Aim for high p
 
 parser.add_argument("-t", "--test", action='store_true', help='Run the RobotSearch test suite', required=False)
 
+
+# if not args.test and not args.input_filename:
+#     print("Please enter a filename after the robotsearch command (RIS files accepted)")
+
 args = parser.parse_args()
 
 

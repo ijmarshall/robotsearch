@@ -9,7 +9,7 @@ import logging
 log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='RobotReviewer RCT filter: retrieves the RCTs from a database search result with state-of-the-art accuracy')
-parser.add_argument("input_filename", help='name of RIS file to take as input')
+parser.add_argument("input_filename", nargs="?", help='name of RIS file to take as input')
 parser.add_argument("-s", "--sensitive", action='store_true', help='Aim for high sensitivity (i.e. for systematic reviews)', required=False)
 parser.add_argument("-p", "--precise", action='store_true', help='Aim for high precision (i.e. for rapid reviews/clinical question answering', required=False)
 
@@ -32,6 +32,12 @@ print("""
 """)
 print("Welcome to the RobotReviewer RCT filter :)\n\n")
 
+if args.test:
+    print("Test mode...")
+    from robotsearch.robots import rct_robot
+    rct_robot.test_calibration()
+    quit()
+
 
 if not os.path.isfile(args.input_filename):
     print("Sorry can't find the file '{}' - does it exist, and have you entered the path?".format('args.input_filename'))
@@ -41,10 +47,7 @@ input_file_parts = os.path.splitext(args.input_filename)
 
 output_filename = "{}_robotreviewer_RCTs{}".format(*input_file_parts)
 
-if args.test:
-    from robotsearch.robots import rct_robot
-    rct_robot.test_calibration()
-    quit()
+
 
 if os.path.isfile(output_filename):
     print("The file '{}' already exists --- have you already run RobotReviewer on this input? If you wish to run again, please rename, move or delete '{}' to something else".format(output_filename, output_filename))

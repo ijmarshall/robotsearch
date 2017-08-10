@@ -107,15 +107,8 @@ class RCTRobot:
         rct_ptyp = -1
 
         if "ptyp" in data_row:
-            rct_ptyp = 1 if "Randomized Controlled Trial" in data_row else 0
+            rct_ptyp = 1 if "Randomized Controlled Trial" in data_row['ptyp'] else 0
 
-        if "rct_ptyp" in data_row:
-            rct_ptyp_2 = 1 if data_row["rct_ptyp"] else 0
-
-            if strict and rct_ptyp != -1 and rct_ptyp != rct_ptyp2:
-                raise AttributeError("Publication Type information error: `ptyp` and `rct_ptyp` are contradicting")
-
-            rct_ptyp = rct_ptyp_2
 
         return rct_ptyp
 
@@ -131,7 +124,6 @@ class RCTRobot:
         else:
             # don't add for any of them
             pt_mask = np.array([-1 for r in X])
-            # print(pt_mask)
 
         # calculate ptyp for all
         ptyp = np.array([(article.get('rct_ptyp')==True)*1. for article in X])
@@ -151,14 +143,12 @@ class RCTRobot:
         X_ab_str = ['{}\n\n{}'.format(article.get('title', ''), article.get('abstract', '')) for article in X]
 
         if "svm" in filter_class:
-            # print('Running SVM model')
             X_ti = lil_matrix(self.svm_vectorizer.transform(X_ti_str))
             X_ab = lil_matrix(self.svm_vectorizer.transform(X_ab_str))
             svm_preds = self.svm_clf.decision_function(hstack([X_ab, X_ti]))
             svm_scale =  (svm_preds - self.constants['scales']['svm']['mean']) / self.constants['scales']['svm']['std']
 
         if "cnn" in filter_class:
-            # print('Running CNN models...')
             X_cnn = self.cnn_vectorizer.transform(X_ab_str)
             cnn_preds = []
             for i, clf in enumerate(self.cnn_clfs):
@@ -187,31 +177,34 @@ class RCTRobot:
             else:
                 row['model'] = filter_class
             row['threshold_type'] = filter_type
-            # row['vec'] = vec
             row['threshold_value'] = float(threshold)
             row['is_rct'] = bool(pred >= threshold)
             row['ptyp_rct'] = int(used_ptyp)
             out.append(row)
         return out
 
-    def predict_ris(self, ris_string, filter_class="svm", filter_type='precise', auto_use_ptyp=False):
+    def predict_ris(self, ris_data, filter_class="svm", filter_type='precise', auto_use_ptyp=False):
 
-        print('Parsing RIS data')
-        ris_data = ris.loads(ris_string)
+
         simplified = [ris.simplify(article) for article in ris_data]
         preds = self.predict(simplified, filter_class=filter_class, filter_type=filter_type, auto_use_ptyp=auto_use_ptyp)
         return preds
 
 
-    def filter_articles(self, ris_string, filter_class="svm", filter_type='precise', auto_use_ptyp=False, remove_non_rcts=True):
-        preds = self.predict_ris(ris_string, filter_class=filter_class, filter_type=filter_type, auto_use_ptyp=auto_use_ptyp)
-        # out = []
-        # for ris_row, pred_row in zip(ris_data, preds):
-            # if remove_non_rcts==False or pred_row['is_rct']:
-                # ris_row.update(pred_row)
-                # out.append(ris_row)
+    def filter_articles(self, ris_string, filter_class="svm", filter_type='precise', auto_use_ptyp=True, remove_non_rcts=True):
 
-        return json.dumps(preds)#ris.dumps(preds)
+        print('Parsing RIS data')
+        ris_data = ris.loads(ris_string)
+        import json
+        with open("debug.json", 'w') as f:
+            json.dumps(ris_data)
+        preds = self.predict_ris(ris_data, filter_class=filter_class, filter_type=filter_type, auto_use_ptyp=auto_use_ptyp)
+        out = []
+        for ris_row, pred_row in zip(ris_data, preds):
+            if remove_non_rcts==False or pred_row['is_rct']:
+                ris_row.update(pred_row)
+                out.append(ris_row)
+        return ris.dumps(out)
 
 
 def test_calibration():
@@ -224,6 +217,10 @@ def test_calibration():
     print("Loading test PubMed file")
     with open(os.path.join(robotsearch.DATA_ROOT, 'rct/pubmed_test.txt'), 'r') as f:
         ris_string = f.read()
+
+
+    print('Parsing RIS data')
+    ris_data = ris.loads(ris_string)
 
     print("Loading expected results (from validation paper)")
     with open(os.path.join(robotsearch.DATA_ROOT, 'rct/pubmed_expected.json'), 'r') as f:
@@ -238,9 +235,8 @@ def test_calibration():
                 expected_model_class = "{}_ptyp".format(target_class) if use_ptyp else target_class
 
                 print("Testing {} model; use_ptyp={}; mode={}".format(target_class, use_ptyp, target_mode))
-                data = rct_bot.predict_ris(ris_string, filter_class=target_class, filter_type=target_mode, auto_use_ptyp=use_ptyp)
+                data = rct_bot.predict_ris(ris_data, filter_class=target_class, filter_type=target_mode, auto_use_ptyp=use_ptyp)
 
-                ris_data = ris.loads(ris_string)
                 exp_pmids = [str(r['PMID'][0]) for r in ris_data]
                 obs_pmids = [str(r['pmid']) for r in expected_results[expected_model_class][target_mode]]
 

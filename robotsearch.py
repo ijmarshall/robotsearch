@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(description='RobotReviewer RCT filter: retrieve
 parser.add_argument("input_filename", nargs="?", help='name of RIS file to take as input')
 parser.add_argument("-s", "--sensitive", action='store_true', help='Aim for high sensitivity (i.e. for systematic reviews)', required=False)
 parser.add_argument("-p", "--precise", action='store_true', help='Aim for high precision (i.e. for rapid reviews/clinical question answering', required=False)
-
+parser.add_argument("-f", "--force", action='store_true', help='Force overwrite of existing output file', required=False)
 parser.add_argument("-t", "--test", action='store_true', help='Run the RobotSearch test suite', required=False)
 
 
@@ -50,8 +50,11 @@ output_filename = "{}_robotreviewer_RCTs{}".format(*input_file_parts)
 
 
 if os.path.isfile(output_filename):
-    print("The file '{}' already exists --- have you already run RobotReviewer on this input? If you wish to run again, please rename, move or delete '{}' to something else".format(output_filename, output_filename))
-    exit()
+    if not args.force:
+        print("The file '{}' already exists --- have you already run RobotReviewer on this input? If you wish to run again, please rename, move or delete '{}' to something else".format(output_filename, output_filename))
+        exit()
+    else:
+        print("The file '{}' already exist --- RobotSearch will overwrite (press Ctrl-C before prediction has completed to abort)".format(output_filename))
 
 if args.precise and args.sensitive:
     print("Please choose either sensitive or precise search (i.e. don't run with both `-p` and `-s` arguments")

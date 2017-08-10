@@ -73,8 +73,11 @@ def dumps(ris_list):
 
     for article in ris_list:
         for k, v_list in article.items():
-            for v in v_list:
-                out.append('{}  - {}'.format(k, v))
+            if isinstance(v_list, list):
+                for v in v_list:
+                    out.append('{}  - {}'.format(k, v))
+            elif any((isinstance(v_list, typ) for typ in [str, int, bool])):
+                out.append('{}  - {}'.format(k, v_list))
         out.append('\n\n\n')
 
     return '\n'.join(out)
@@ -82,7 +85,7 @@ def dumps(ris_list):
 def dump(ris_list, file_obj):
     file_obj.write(dumps(ris_list))
 
-def simplify(article, strict=False):
+def simplify(article):
 
     # Note currently the article *must* have at least a title
     # otherwise an exception happens
@@ -92,16 +95,12 @@ def simplify(article, strict=False):
 
     try:
         # this should work for both PubMed and the Ovid/Endnote format
-        out = {"title": ' '.join(article['TI']),
+        out = {"title": ' '.join(article.get('TI', [])),
                "abstract": ' '.join(article.get('AB', []))}
         if 'PT' in article:
-            out['rct_ptyp'] = "Randomized Controlled Trial" in article['PT']
+            out['ptyp'] = article['PT']
     except:
-        if not strict:
-            out = {"title": "",
-                   "abstract": ""}                   
-        else:
-            raise Exception('Data was not recognised as Ovid or PubMed format')
+        raise Exception('Data was not recognised as Ovid or PubMed format')
     return out
 
 

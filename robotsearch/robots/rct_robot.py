@@ -126,8 +126,9 @@ class RCTRobot:
             pt_mask = np.array([-1 for r in X])
 
         # calculate ptyp for all
-        ptyp = np.array([(article.get('rct_ptyp')==True)*1. for article in X])
-        ptyp_scale = (ptyp - self.constants['scales']['ptyp']['mean']) / self.constants['scales']['ptyp']['std']
+        #ptyp = np.copy(pt_mask)
+        # ptyp = np.array([(article.get('rct_ptyp')==True)*1. for article in X])
+        ptyp_scale = (pt_mask - self.constants['scales']['ptyp']['mean']) / self.constants['scales']['ptyp']['std']
         # but set to 0 if not using
         ptyp_scale[pt_mask==-1] = 0
 

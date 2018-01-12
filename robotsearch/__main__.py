@@ -9,7 +9,7 @@ import logging
 log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='RobotReviewer RCT filter: retrieves the RCTs from a database search result with state-of-the-art accuracy')
-parser.add_argument("input_filename", nargs="?", help='name of RIS file to take as input')
+parser.add_argument('input_filename', help='name of RIS file to take as input')
 parser.add_argument("-s", "--sensitive", action='store_true', help='Aim for high sensitivity (i.e. for systematic reviews)', required=False)
 parser.add_argument("-p", "--precise", action='store_true', help='Aim for high precision (i.e. for rapid reviews/clinical question answering', required=False)
 parser.add_argument("-f", "--force", action='store_true', help='Force overwrite of existing output file', required=False)
@@ -40,7 +40,7 @@ if args.test:
 
 
 if not os.path.isfile(args.input_filename):
-    print("Sorry can't find the file '{}' - does it exist, and have you entered the path?".format('args.input_filename'))
+    print("Sorry can't find the file '{}' - does it exist, and have you entered the path?".format(args.input_filename))
     exit()
 
 input_file_parts = os.path.splitext(args.input_filename)

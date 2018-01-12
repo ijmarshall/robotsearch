@@ -16,5 +16,6 @@ setup(name='robotsearch',
     	'console_scripts': [
         'robotsearch = robotsearch:main',
     	]},
+      package_data={'robotsearch': ['data/rct/*.*']},
       packages=setuptools.find_packages(),
 )

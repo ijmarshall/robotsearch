@@ -16,4 +16,5 @@ setup(name='robotsearch',
     	'console_scripts': [
         'robotsearch = robotsearch:main',
     	]},
-      packages=['robotsearch'])
+      packages=setuptools.find_packages(),
+)

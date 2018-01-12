@@ -2,6 +2,19 @@
 
 Software for filtering RCTs from a search result.
 
+## Installation instructions
+
+1. Before installing RobotSearch, you will need to install Python 3. We recommend that you use the MiniConda Python distribution (N.B. choose version 3.6 or higher). You can download this [here](https://conda.io/miniconda.html).
+
+2. Open up the Terminal (or Command Prompt in Windows). This is also how you will interact with RobotSearch when you use it.
+
+3. Install RobotSearch using the following command:
+	`https://github.com/ijmarshall/robotsearch/archive/master.zip`
+
+4. RobotSearch should be automatically downloaded and installed on your machine. The software is >200MB in size, so this process may take some time depending on how fast your internet connection is.
+
+5. You should be ready to go!
+
 ## How it works
 
 RobotSearch uses machine learning as an alternative to string-based study design filters.
@@ -12,18 +25,19 @@ It works with MEDLINE searches exported from either PubMed or Ovid.
 
 2. Then export your results in RIS format (see more detailed instrutions below on how to do this in PubMed and Ovid)
 
-3. From the command line/terminal, run the robotsearch command:
-`./robotsearch.py my_file.ris`
+3. From the Command Prompt/Terminal, run the robotsearch command:
+`robotsearch my_file.ris`
 
 4. Your search results will be saved as `my_file_robotreviewer_RCTs.ris`
 
-## Notes
+## Changing settings
 
-By default, RobotReviewer runs a *sensitive* search (i.e. very high likelihood that *all* RCTs will be retrieved, at expense of sometimes including non-RCTs) - this is suitable for a systematic review.
+By default, RobotSearch runs a *sensitive* search (i.e. very high likelihood that *all* RCTs will be retrieved, at expense of sometimes including non-RCTs) - this is suitable for a systematic review.
 
 To run a *precise* search (i.e. the retrieved articles have a very high likelihood of being RCTs, but at the expense of missing a tiny proportion), run with an extra `-p` flag, e.g.:
 
-`./robotsearch.py my_file.ris -p`
+`robotsearch my_file.ris -p`
+
 
 ## Exporting from PubMed
 
@@ -49,8 +63,15 @@ To run a *precise* search (i.e. the retrieved articles have a very high likeliho
 7. Click 'Export Citation(s)' in the bottom right
 8. The citations will be exported, but there may be a wait of a minute or two.
 
+## Testing
 
-Support
--------
+RobotSearch has a optional test mode, which runs through a standardised search result, and double checks that the software is returning the same results as in the validation study. NB this takes around 5--10 minutes to run, depending on the speed of your machine.
+
+To run this, type:
+
+`robotsearch -t	`
+
+
+## Support
 
 This work is supported by: National Institutes of Health (NIH) under the National Library of Medicine, grant R01-LM012086-01A1, "Semi-Automating Data Extraction for Systematic Reviews", and by NIH grant 5UH2CA203711-02, "Crowdsourcing Mark-up of the Medical Literature to Support Evidence-Based Medicine and Develop Automated Annotation Capabilities", and the UK Medical Research Council (MRC), through its Skills Development Fellowship program, grant MR/N015185/1

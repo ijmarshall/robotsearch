@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 install_requires = ['scipy==0.19.1',
@@ -18,5 +18,5 @@ setup(name='robotsearch',
         'robotsearch = robotsearch:main',
     	]},
       package_data={'robotsearch': ['data/rct/*.*']},
-      packages=setuptools.find_packages(),
+      packages=find_packages(),
 )

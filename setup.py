@@ -9,7 +9,7 @@ install_requires = ['scipy==0.19.1',
 
 setup(name='robotsearch',
       author='Iain Marshall',
-      author_email="mail@ijmarshall.com"
+      author_email="mail@ijmarshall.com",
       version='0.0.1',
       install_requires=install_requires,
       entry_points = {

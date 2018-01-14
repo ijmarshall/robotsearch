@@ -11,11 +11,11 @@ install_requires = ['scipy==0.19.1',
 setup(name='robotsearch',
       author='Iain Marshall',
       author_email="mail@ijmarshall.com",
-      version='0.1.0',
+      version='0.1.3',
       install_requires=install_requires,
       entry_points = {
     	'console_scripts': [
-        'robotsearch = robotsearch:main',
+        'robotsearch = robotsearch.__main__:main',
     	]},
       package_data={'robotsearch': ['data/rct/*.*']},
       packages=find_packages(),

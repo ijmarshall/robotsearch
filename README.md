@@ -8,8 +8,8 @@ Software for filtering RCTs from a search result.
 
 2. Open up the Terminal (or Command Prompt in Windows). This is also how you will interact with RobotSearch when you use it.
 
-3. Install RobotSearch using the following command:
-	`https://github.com/ijmarshall/robotsearch/archive/master.zip`
+3. Install RobotSearch using the following command (easiest to copy/paste):
+	`pip install -U https://github.com/ijmarshall/robotsearch/archive/master.zip`
 
 4. RobotSearch should be automatically downloaded and installed on your machine. The software is >200MB in size, so this process may take some time depending on how fast your internet connection is.
 

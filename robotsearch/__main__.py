@@ -38,9 +38,11 @@ if args.test:
     rct_robot.test_calibration()
     quit()
 
+print("input is:")
+print(args.input_filename)
 
 if not args.input_filename:
-    print("Error - No filename given. A filename for your RIS file is required, e.g. `robotsearch myrefs.ris`.")
+    print("Error - No filename given. A filename for your RIS file is required,\ne.g. `robotsearch myrefs.ris`.")
     quit()
 
 if not os.path.isfile(args.input_filename):

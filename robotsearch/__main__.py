@@ -41,11 +41,11 @@ if args.test:
 
 if not args.input_filename:
     print("Error - No filename given. A filename for your RIS file is required, e.g. `robotsearch myrefs.ris`.")
-    exit()
+    quit()
 
 if not os.path.isfile(args.input_filename):
     print("Error - Sorry can't find the file '{}' - does it exist, and have you entered the path?".format(args.input_filename))
-    exit()
+    quit()
 
 input_file_parts = os.path.splitext(args.input_filename)
 
@@ -56,13 +56,13 @@ output_filename = "{}_robotreviewer_RCTs{}".format(*input_file_parts)
 if os.path.isfile(output_filename):
     if not args.force:
         print("The file '{}' already exists --- have you already run RobotReviewer on this input? If you wish to run again, please rename, move or delete '{}' to something else".format(output_filename, output_filename))
-        exit()
+        quit()
     else:
         print("The file '{}' already exist --- RobotSearch will overwrite (press Ctrl-C before prediction has completed to abort)".format(output_filename))
 
 if args.precise and args.sensitive:
     print("Please choose either sensitive or precise search (i.e. don't run with both `-p` and `-s` arguments")
-    exit()
+    quit()
 elif args.precise:
     print("Using the precise strategy")
     filter_class = "cnn"

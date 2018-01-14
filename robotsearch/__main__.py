@@ -39,7 +39,7 @@ if args.test:
     quit()
 
 
-if args.input_filename is None:
+if not args.input_filename:
     print("Error - No filename given. A filename for your RIS file is required, e.g. `robotsearch myrefs.ris`.")
     exit()
 

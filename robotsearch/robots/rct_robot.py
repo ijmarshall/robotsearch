@@ -104,13 +104,12 @@ class RCTRobot:
                  0 = ptyp is NOT RCT
                  -1 = no ptyp information present
         """
-        rct_ptyp = -1
-
-        if "ptyp" in data_row:
-            rct_ptyp = 1 if any((tag in data_row['ptyp'] for tag in ["Randomized Controlled Trial", "D016449"])) else 0
-
-
-        return rct_ptyp
+        if data_row['use_ptyp'] == False:
+            return -1
+        elif data_row['use_ptyp'] == True:
+            return 1 if any((tag in data_row['ptyp'] for tag in ["Randomized Controlled Trial", "D016449"])) else 0
+        else:
+            raise Exception("unexpcted value for 'use_ptyp'")
 
 
     def predict(self, X, filter_class="svm", filter_type="sensitive", auto_use_ptyp=True):

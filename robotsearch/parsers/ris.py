@@ -99,6 +99,23 @@ def simplify(article):
                "abstract": ' '.join(article.get('AB', []))}
         if 'PT' in article:
             out['ptyp'] = article['PT']
+        # have an explicit use_ptyp variable, which is automatically 
+        # detected
+        # for PubMed, this will autoset to True for where
+        # status = "MEDLINE". (and hence MeSH tagging is complete)
+        # for Ovid, this will just check whether the MEDLINE database
+        # was used (and if so, we have MeSH for all)
+        # for all other options, we will only use title/abstract
+
+        
+        if "MEDLINE" in article.get('STAT', []):
+            # PubMed + MEDLINE article
+            out['use_ptyp'] = True
+        elif "Ovid MEDLINE(R)" in article.get('DB', []):
+            # Ovid + MEDLINE article
+            out['use_ptyp'] = True
+        else:
+            out['use_ptyp'] = False
     except:
         raise Exception('Data was not recognised as Ovid or PubMed format')
     return out

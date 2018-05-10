@@ -14,6 +14,7 @@ def main():
     parser.add_argument('input_filename', nargs='?', help='name of RIS file to take as input')
     parser.add_argument("-s", "--sensitive", action='store_true', help='Aim for high sensitivity (i.e. for systematic reviews)', required=False)
     parser.add_argument("-p", "--precise", action='store_true', help='Aim for high precision (i.e. for rapid reviews/clinical question answering', required=False)
+    parser.add_argument("-b", "--balanced", action='store_true', help='Aim for balanced sensitivity/specificity', required=False)
     parser.add_argument("-f", "--force", action='store_true', help='Force overwrite of existing output file', required=False)
     parser.add_argument("-t", "--test", action='store_true', help='Run the RobotSearch test suite', required=False)
 
@@ -62,12 +63,16 @@ def main():
             print("The file '{}' already exist --- RobotSearch will overwrite (press Ctrl-C before prediction has completed to abort)".format(output_filename))
 
     if sum([args.precise, args.sensitive]) > 1:
-        print("Please choose either sensitive or precise search (i.e. don't run with both `-p` and `-s` arguments")
+        print("Please choose either sensitive, precise, or balanced search (i.e. don't run with both `-p` and `-s` arguments")
         quit()
     elif args.precise:
         print("Using the precise strategy")
         filter_class = "cnn"
         threshold = "precise"
+    elif args.balanced:
+        print("Using the balanced strategy")
+        filter_class ="svm_cnn"
+        threshold = "balanced"
 
     else:
         print("Using the sensitive strategy")

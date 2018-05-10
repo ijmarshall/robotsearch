@@ -82,6 +82,10 @@ We would love software developers, and people who make biblographic databases to
 
 We also welcome contributions from the community; please contact us (or submit an issue via Github) if you are interested in improving the software. We're keen to make sure it is as easy to use as possible by non-programmers—any contributions to help with this aim are particularly welcome.
 
+## Using RobotSearch as a Python module
+
+RobotSearch may be called as a Python module, from within the root directory. See the [example IPython notebook](Calling RobotSearch as a Python module.ipynb) for how to do this.
+
 ## Support
 
 This work is supported by: National Institutes of Health (NIH) under the National Library of Medicine, grant R01-LM012086-01A1, "Semi-Automating Data Extraction for Systematic Reviews", and by NIH grant 5UH2CA203711-02, "Crowdsourcing Mark-up of the Medical Literature to Support Evidence-Based Medicine and Develop Automated Annotation Capabilities", and the UK Medical Research Council (MRC), through its Skills Development Fellowship program, grant MR/N015185/1

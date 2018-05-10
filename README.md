@@ -84,7 +84,7 @@ We also welcome contributions from the community; please contact us (or submit a
 
 ## Using RobotSearch as a Python module
 
-RobotSearch may be called as a Python module, from within the root directory. See the [example IPython notebook](Calling RobotSearch as a Python module.ipynb) for how to do this.
+RobotSearch may be called as a Python module, from within the root directory. See the [example IPython notebook](https://github.com/ijmarshall/robotsearch/blob/master/Calling%20RobotSearch%20as%20a%20Python%20module.ipynb) for how to do this.
 
 ## Support
 

@@ -10,6 +10,7 @@ FILTERED_DIR_NAME = 'filtered'
 ALLOWED_EXTENSIONS = set(['txt', 'ris'])
 
 app = Flask(__name__)
+
 app.config['UPLOAD_FOLDER'] = resource_path = os.path.join(app.root_path, UPLOAD_DIR_NAME) 
 app.config['FILTERED_FOLDER'] = os.path.join(app.root_path, FILTERED_DIR_NAME) 
 
@@ -20,6 +21,10 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
 
 @app.route("/", methods=['GET', 'POST'])
 def hello():
@@ -64,11 +69,6 @@ def download(filename):
     f_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     return send_from_directory(app.config['FILTERED_FOLDER'],
                                filename)
-
-
-#@app.route('/start_page')
-#def start_page():
-#    return render_template('select_ris_to_upload.html')
 
 
 if __name__ == '__main__':

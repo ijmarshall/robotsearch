@@ -31,8 +31,7 @@ def hello():
     if request.method == 'POST':
         #import pdb; pdb.set_trace()
         if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
+            return render_template("select_ris_to_upload.html")
         file = request.files['file']
         # if user does not select file, browser also
         # submit a empty part without filename

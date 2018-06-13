@@ -50,12 +50,18 @@ def uploaded_RIS(filename):
     
     # ok, now dump out to file
     out_f_path =  os.path.join(app.config['FILTERED_FOLDER'], filename)
-    out_f = open(out_f_path, 'w')
-    out_f.write(filtered)
-    out_f.close()
+    with open(out_f_path, 'w') as out_f:
+        out_f.write(filtered)
 
-    # @TODO! obviously need to do something else here. 
-    # namely should just render a new page w/a download link.
+    download_path = url_for('download', filename=filename)
+    download_file_name = "FILTERED-" + filename
+    return render_template("download_ready.html", 
+                            download_path=download_path, 
+                            target_file_name=download_file_name)
+
+@app.route('/uploads/<path:filename>', methods=['GET', 'POST'])
+def download(filename):
+    f_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     return send_from_directory(app.config['FILTERED_FOLDER'],
                                filename)
 

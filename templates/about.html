@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+  <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='cover.css') }}" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+  <body>
+    
+     <div class="site-wrapper">
+
+      <div class="site-wrapper-inner">
+
+        <div class="cover-container">
+
+            <div class="masthead clearfix">
+                <div class="inner">
+                  <h3 class="masthead-brand"> <img src=" {{ url_for('static', filename='rr.png') }}"></h3>
+                  <nav class="nav nav-masthead">
+                    <a class="nav-link" href="/">Filter RCTs</a>
+                    <a class="nav-link active" href="#">About</a>
+                    <a class="nav-link" href="#">Contact</a>
+                  </nav>
+                </div>
+          </div>
+
+          <div class="inner cover">
+            <h1 class="cover-heading">What is going on here?</h1>
+           
+
+   
+
+            <p>This is a front-end for our machine learning model that identifies reports of randomized controlled articles (RCTs). We have extensively validated the recall and precision of this model, as described in our <i>Research Synthesis Methods</i> publication, <b>Machine learning for identifying Randomized Controlled Trials: An evaluation and practitioner's guide</b>. Please cite this paper if you use the tool in published work. </p>
+
+
+                    Marshall 
+              <text></text>IJ, Noel‐Storr 
+              <text></text>A, Kuiper 
+              <text></text>J, Thomas 
+              <text></text>J, Wallace 
+              <text></text>BC. <span class="articleTitle">Machine learning for identifying Randomized Controlled Trials: An evaluation and practitioner's
+                 guide</span>. <i>Res Syn Meth</i>. <span class="pubYear">2018</span>;1–12. <a href="https://doi.org/10.1002/jrsm.1287" class="linkBehavior">https://doi.org/10.1002/jrsm.1287</a>
+
+          </div>
+
+          
+          <div class="mastfoot">
+            <div class="inner">
+              <p>This work is supported by: the NIH/NLM grant R01-LM012086-01A1, NIH/NCI grant 5UH2CA203711-02, and also by the UK Medical Research Council (MRC), through its Skills Development Fellowship program, grant MR/N015185/1.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </body>
+  </html>
+

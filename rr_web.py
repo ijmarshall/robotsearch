@@ -1,4 +1,8 @@
-import os 
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
+import logging
+from datetime import datetime, timedelta
 
 from flask import Flask, request, redirect, url_for, abort
 from flask import render_template, send_from_directory
@@ -9,10 +13,15 @@ UPLOAD_DIR_NAME = 'uploads'
 FILTERED_DIR_NAME = 'filtered'
 ALLOWED_EXTENSIONS = set(['txt', 'ris', 'cgi']) # for ovidweb.cgi weird export extensions
 
+log = logging.getLogger(__name__)
+log.info("Welcome to RobotSearch server :)")
+
 app = Flask(__name__)
 
-app.config['UPLOAD_FOLDER'] = resource_path = os.path.join(app.root_path, UPLOAD_DIR_NAME) 
-app.config['FILTERED_FOLDER'] = os.path.join(app.root_path, FILTERED_DIR_NAME) 
+app.config['UPLOAD_FOLDER'] = resource_path = os.path.join(app.root_path, UPLOAD_DIR_NAME)
+app.config['FILTERED_FOLDER'] = os.path.join(app.root_path, FILTERED_DIR_NAME)
+
+#app.secret_key = os.environ.get("SECRET", "super secret key")
 
 from robotsearch.robots import rct_robot
 rct_clf = rct_robot.RCTRobot()
@@ -21,11 +30,12 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
+log.info("RobotSearch ready & awaiting contact...")
 @app.route("/about")
 def about():
     return render_template("about.html")
 
+log.info("Ready")
 @app.route("/", methods=['GET', 'POST'])
 def hello():
     if request.method == 'POST':
@@ -65,6 +75,7 @@ def uploaded_RIS(filename, model):
     download_file_name = "robotsearch-" + model + "-filter-" + filename
     return render_template("download_ready.html", 
                             download_path=download_path, 
+
                             target_file_name=download_file_name)
 
 @app.route('/uploads/<path:filename>', methods=['GET', 'POST'])
@@ -76,3 +87,4 @@ def download(filename):
 
 if __name__ == '__main__':
     app.run(debug=False)
+

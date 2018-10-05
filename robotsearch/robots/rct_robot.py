@@ -183,7 +183,7 @@ class RCTRobot:
             out.append(row)
         return out
 
-    def predict_ris(self, ris_data, filter_class="svm", filter_type='precise', auto_use_ptyp=False):
+    def predict_ris(self, ris_data, filter_class="svm", filter_type='sensitive', auto_use_ptyp=False):
 
 
         simplified = [ris.simplify(article) for article in ris_data]

@@ -30,7 +30,7 @@ RUN chown -R deploy.deploy /var/lib/deploy/
 
 USER deploy
 # install Anaconda
-RUN aria2c -s 16 -x 16 -k 30M https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /var/lib/deploy/Anaconda.sh
+RUN curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /var/lib/deploy/Anaconda.sh
 RUN cd /var/lib/deploy && bash Anaconda.sh -b && rm -rf Anaconda.sh
 ENV PATH=/var/lib/deploy/miniconda3/bin:$PATH
 ADD rs_env.yml tmp/rs_env.yml

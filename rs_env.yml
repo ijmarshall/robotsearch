@@ -2,11 +2,10 @@ name: robotsearch
 dependencies:
 - mkl
 - mkl-service
-- python=3.5
+- python=3
 - Cython=0.25.2
-- Flask=0.12
+- Flask=1.0.2
 - Flask-Cors=3.0.2
-- Flask-WTF=0.12
 - h5py==2.7.1
 - murmurhash=0.26.4
 - nltk=3.2.2
@@ -26,7 +25,6 @@ dependencies:
 - ujson=1.35
 - unicodecsv=0.14.1
 - Unidecode=0.4.19
-- Werkzeug=0.12.2
 - pip:
     - gevent==1.2.2
     - tensorflow==1.5.0

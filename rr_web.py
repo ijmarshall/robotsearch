@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 
 UPLOAD_DIR_NAME = 'uploads'
 FILTERED_DIR_NAME = 'filtered'
-ALLOWED_EXTENSIONS = set(['txt', 'ris'])
+ALLOWED_EXTENSIONS = set(['txt', 'ris', 'cgi']) # for ovidweb.cgi weird export extensions
 
 app = Flask(__name__)
 
@@ -71,4 +71,4 @@ def download(filename):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

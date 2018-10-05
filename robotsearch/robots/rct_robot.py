@@ -191,7 +191,7 @@ class RCTRobot:
         return preds
 
 
-    def filter_articles(self, ris_string, filter_class="svm", filter_type='precise', auto_use_ptyp=True, remove_non_rcts=True):
+    def filter_articles(self, ris_string, filter_class="svm", filter_type='sensitive', auto_use_ptyp=True, remove_non_rcts=True):
 
         print('Parsing RIS data')
         ris_data = ris.loads(ris_string)

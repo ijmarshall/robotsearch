@@ -1,6 +1,6 @@
 import os 
 
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, abort
 from flask import render_template, send_from_directory
 
 from werkzeug.utils import secure_filename
@@ -40,17 +40,21 @@ def hello():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
+            model = request.form['model']
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             return redirect(url_for('uploaded_RIS',
-                                    filename=filename))
+                                    filename=filename,
+                                    model=model))
 
     return render_template("select_ris_to_upload.html")
 
-@app.route('/uploaded_RIS/<filename>')
-def uploaded_RIS(filename):
+@app.route('/uploaded_RIS/<model>/<filename>')
+def uploaded_RIS(filename, model):
+    if model not in ['sensitive', 'precise']:
+        abort(404)
     f_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     RIS_data = open(f_path, 'r').read()
-    filtered = rct_clf.filter_articles(RIS_data)
+    filtered = rct_clf.filter_articles(RIS_data, filter_type=model)
     
     # ok, now dump out to file
     out_f_path =  os.path.join(app.config['FILTERED_FOLDER'], filename)
@@ -58,7 +62,7 @@ def uploaded_RIS(filename):
         out_f.write(filtered)
 
     download_path = url_for('download', filename=filename)
-    download_file_name = "FILTERED-" + filename
+    download_file_name = "robotsearch-" + model + "-filter-" + filename
     return render_template("download_ready.html", 
                             download_path=download_path, 
                             target_file_name=download_file_name)

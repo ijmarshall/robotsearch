@@ -4,6 +4,10 @@ Welcome to RobotSearch, software for filtering RCTs from a search result as desc
 
 [Marshall I, Storr AN, Kuiper J, Thomas J, Wallace BC. Machine Learning for Identifying Randomized Controlled Trials: an evaluation and practitioner's guide. Res Syn Meth. 2018. https://doi.org/10.1002/jrsm.1287](https://doi.org/10.1002/jrsm.1287)
 
+We offer RobotSearch free of charge, but we'd be most grateful if you would cite us if you use it. We're academics, and thrive on links and citations! Getting RobotSearch widely used and cited helps us obtain the funding to maintain the project and make RobotSearch better.
+
+It also makes your methods transparent to your readers, and not least we'd love to see where RobotSearch is used! :)
+
 ## The easy way
 
 For most people, we encourage you to use RobotSearch via [our website](https://robotsearch.vortext.systems).

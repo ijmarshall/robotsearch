@@ -4,9 +4,23 @@ Welcome to RobotSearch, software for filtering RCTs from a search result as desc
 
 [Marshall I, Storr AN, Kuiper J, Thomas J, Wallace BC. Machine Learning for Identifying Randomized Controlled Trials: an evaluation and practitioner's guide. Res Syn Meth. 2018. https://doi.org/10.1002/jrsm.1287](https://doi.org/10.1002/jrsm.1287)
 
-Currently this software runs from the Command Prompt (in Windows), or the Terminal (in Mac, or Linux), though we will work in future to make using the tool even easier. (If you are in a position to help with this, please see below!)
+## The easy way
+
+For most people, we encourage you to use RobotSearch via [our website](https://robotsearch.vortext.systems).
+
+No need to install anything, simply upload your RIS files (Ovid or PubMed format), and instantly download the filtered version containing RCTs only.
+N.B. To ensure the highest accuracy, please make sure that your RIS files are exported with all the fields needed (see below for instructions for Ovid and Pubmed).
+
+![RobotSearch web screenshot](rsw.png)
+
+[RobotSearch online](https://robotsearch.vortext.systems)
+
+For those who are particularly technically minded, or have a pressing need to run the software on their own machines, read on...
+
 
 ## Installation instructions
+
+Currently this software runs from the Command Prompt (in Windows), or the Terminal (in Mac, or Linux).
 
 1. Before installing RobotSearch, you will need to install Python 3. We recommend that you use the MiniConda Python distribution (N.B. choose version 3.6 or higher). You can download this [here](https://conda.io/miniconda.html).
 
@@ -18,6 +32,29 @@ Currently this software runs from the Command Prompt (in Windows), or the Termin
 4. RobotSearch should be automatically downloaded and installed on your machine. The software is >200MB in size, so this process may take some time depending on how fast your internet connection is.
 
 5. You should be ready to go!
+
+## The website
+
+We include the code for the online version also in this repository.
+The easiest way to run is via Docker.
+
+From within the code directory run:
+```
+docker build -t robotsearch
+```
+
+If the build is successful, you can then start the website locally by running:
+
+```
+./start.sh
+```
+
+You can then access the website on any webbrowser on your local machine at: http://localhost:5050.
+
+To stop the websever, run:
+```
+docker stop robotsearch
+```
 
 ## How it works
 
@@ -80,7 +117,7 @@ To run this, type:
 
 We would love software developers, and people who make biblographic databases to integrate this method into their systems. All the software is open source under the GNU GPL v3. Please contact us ([mail@ijmarshall.com](mailto:mail@ijmarshall.com)) to discuss further.
 
-We also welcome contributions from the community; please contact us (or submit an issue via Github) if you are interested in improving the software. We're keen to make sure it is as easy to use as possible by non-programmers—any contributions to help with this aim are particularly welcome.
+We also welcome contributions from the community; please contact us (or submit an issue via Github) if you are interested in improving the software.
 
 ## Using RobotSearch as a Python module
 

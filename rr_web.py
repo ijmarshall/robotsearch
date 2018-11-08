@@ -60,11 +60,19 @@ def hello():
 
 @app.route('/uploaded_RIS/<model>/<filename>')
 def uploaded_RIS(filename, model):
-    if model not in ['sensitive', 'precise']:
+    
+        
+    # auto choose the right model
+    if model == 'sensitive':
+        fc = 'svm'
+    elif model == 'precise':
+        fc = 'cnn'
+    else:
         abort(404)
+
     f_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     RIS_data = open(f_path, 'r').read()
-    filtered = rct_clf.filter_articles(RIS_data, filter_type=model)
+    filtered = rct_clf.filter_articles(RIS_data, filter_type=model, filter_class=fc)
     
     # ok, now dump out to file
     out_f_path =  os.path.join(app.config['FILTERED_FOLDER'], filename)

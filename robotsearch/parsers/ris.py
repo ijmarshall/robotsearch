@@ -22,6 +22,14 @@ def iter_load_ris(iterable):
     delim_ovid_ris = re.compile('^[1-9][0-9]*\.') # ris export
     delim_pubmed = re.compile('^\s*$')
 
+    # additional useless stuff in Wiley RIS format
+    wiley_ignores = [re.compile('^Record \#[1-9]+[0-9]* of [1-9]+[0-9]*$'),
+                     re.compile('^Provider: John Wiley & Sons, Ltd.$'),
+                     re.compile('^Content: text\/plain\; charset\=\"UTF\-8\"$')]
+
+
+
+
     needle_down = False # record player metaphor...
     entry_builder = OrderedDict()
 
@@ -33,6 +41,10 @@ def iter_load_ris(iterable):
         if line.startswith(codecs.BOM_UTF8.decode()):
             print("defused a BOM")
             line = line[1:]
+
+        # skip any Wiley extra stuff
+        if any((wi.match(line) for wi in wiley_ignores)):
+            continue
 
         if first_line:
             first_line = False

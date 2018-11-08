@@ -183,6 +183,8 @@ class RCTRobot:
             out.append(row)
         return out
 
+
+
     def predict_ris(self, ris_data, filter_class="svm", filter_type='sensitive', auto_use_ptyp=False):
 
 
@@ -200,9 +202,13 @@ class RCTRobot:
             json.dumps(ris_data)
         preds = self.predict_ris(ris_data, filter_class=filter_class, filter_type=filter_type, auto_use_ptyp=auto_use_ptyp)
         out = []
+
+        pred_key_map = {"score": "ZS", "model": "ZM", "threshold_type": "ZT", "threshold_value": "ZC", "is_rct": "ZR", "ptyp_rct": "ZP"}
+
         for ris_row, pred_row in zip(ris_data, preds):
             if remove_non_rcts==False or pred_row['is_rct']:
-                ris_row.update(pred_row)
+                ris_row.update({pred_key_map[k]: v for k, v in pred_row.items()})
+                
                 out.append(ris_row)
         return ris.dumps(out)
 

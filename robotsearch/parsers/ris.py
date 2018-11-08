@@ -121,7 +121,7 @@ def dumps(ris_list):
             if isinstance(v_list, list):
                 for v in v_list:
                     out.append('{}  - {}'.format(k, v))
-            elif any((isinstance(v_list, typ) for typ in [str, int, bool])):
+            elif any((isinstance(v_list, typ) for typ in [str, int, bool, float])):
                 out.append('{}  - {}'.format(k, v_list))
         out.append('\n\n\n')
 

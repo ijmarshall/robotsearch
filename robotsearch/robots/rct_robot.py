@@ -152,7 +152,6 @@ class RCTRobot:
             X_cnn = self.cnn_vectorizer.transform(X_ab_str)
             cnn_preds = []
             for i, clf in enumerate(self.cnn_clfs):
-                print('\t{} of {}'.format(i+1, len(self.cnn_clfs)))
                 cnn_preds.append(clf.predict(X_cnn).T[0])
 
             cnn_preds = np.vstack(cnn_preds)
@@ -254,8 +253,6 @@ def test_calibration():
 
                 print("Totals assessed: {} obs, {} exp".format(len(obs_score), len(exp_score)))
                 match_clf = np.sum(np.equal(obs_clf, exp_clf))
-
-
 
                 disag = np.where((np.equal(obs_clf, exp_clf)==False))[0]
                 hedges_y = np.array([r['hedges_is_rct']=='1' for r in expected_results[expected_model_class][target_mode]])

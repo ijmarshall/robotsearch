@@ -1,0 +1,6 @@
+#!/bin/sh
+export DEV false
+export DEBUG false
+export KERAS_BACKEND=tensorflow
+cd /var/lib/deploy/ && nohup python /var/lib/deploy/server.py &
+sleep infinity

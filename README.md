@@ -127,6 +127,10 @@ We also welcome contributions from the community; please contact us (or submit a
 
 RobotSearch may be called as a Python module, from within the root directory. See the [example IPython notebook](https://github.com/ijmarshall/robotsearch/blob/master/Calling%20RobotSearch%20as%20a%20Python%20module.ipynb) for how to do this.
 
+## Acknowledgements
+
+This work is dependent on the work of the [Cochrane Crowd](http://crowd.cochrane.org/index.html), for whom we'd like to express enormous gratitude for their work, and in making their data available for training our machine learning models.
+
 ## Support
 
 This work is supported by: National Institutes of Health (NIH) under the National Library of Medicine, grant R01-LM012086-01A1, "Semi-Automating Data Extraction for Systematic Reviews", and by NIH grant 5UH2CA203711-02, "Crowdsourcing Mark-up of the Medical Literature to Support Evidence-Based Medicine and Develop Automated Annotation Capabilities", and the UK Medical Research Council (MRC), through its Skills Development Fellowship program, grant MR/N015185/1

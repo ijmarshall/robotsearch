@@ -124,12 +124,14 @@ class RCTRobot:
             # don't add for any of them
             pt_mask = np.array([-1 for r in X])
 
+        preds_l = {}
         # calculate ptyp for all
         #ptyp = np.copy(pt_mask)
         # ptyp = np.array([(article.get('rct_ptyp')==True)*1. for article in X])
         ptyp_scale = (pt_mask - self.constants['scales']['ptyp']['mean']) / self.constants['scales']['ptyp']['std']
         # but set to 0 if not using
         ptyp_scale[pt_mask==-1] = 0
+        preds_l['ptyp'] = ptyp_scale
 
         # thresholds vary per article
         thresholds = []
@@ -147,39 +149,44 @@ class RCTRobot:
             X_ab = lil_matrix(self.svm_vectorizer.transform(X_ab_str))
             svm_preds = self.svm_clf.decision_function(hstack([X_ab, X_ti]))
             svm_scale =  (svm_preds - self.constants['scales']['svm']['mean']) / self.constants['scales']['svm']['std']
+            preds_l['svm'] = svm_scale
+            preds_l['svm_ptyp'] = preds_l['svm'] + preds_l['ptyp']
 
         if "cnn" in filter_class:
             X_cnn = self.cnn_vectorizer.transform(X_ab_str)
             cnn_preds = []
             for i, clf in enumerate(self.cnn_clfs):
-                print('\t{} of {}'.format(i+1, len(self.cnn_clfs)))
                 cnn_preds.append(clf.predict(X_cnn).T[0])
 
             cnn_preds = np.vstack(cnn_preds)
             cnn_scale =  (cnn_preds - self.constants['scales']['cnn']['mean']) / self.constants['scales']['cnn']['std']
+            preds_l['cnn'] = np.mean(cnn_scale, axis=0)
 
-        if filter_class == "svm":
-            y_preds = svm_scale
-        elif filter_class == "cnn":
-            y_preds = np.mean(cnn_scale, axis=0)
-        elif filter_class == "svm_cnn":
+            preds_l['cnn_ptyp'] = preds_l['cnn'] + preds_l['ptyp']
+
+        if filter_class == "svm_cnn":
             weights = [self.constants['scales']['svm']['weight']] + ([self.constants['scales']['cnn']['weight']] * len(self.cnn_clfs))
-            y_preds = np.average(np.vstack([svm_scale, cnn_scale]), axis=0, weights=weights)
+            preds_l['svm_cnn'] = np.average(np.vstack([svm_scale, cnn_scale]), axis=0, weights=weights)
 
-        y_preds += ptyp_scale
+
+            preds_l['svm_cnn_ptyp'] = preds_l['svm_cnn'] + preds_l['ptyp']
+
+
+        preds_d =[dict(zip(preds_l,i)) for i in zip(*preds_l.values())]
 
         out = []
-        for pred, threshold, used_ptyp in zip(y_preds, thresholds, pt_mask):
+        for pred, threshold, used_ptyp in zip(preds_d, thresholds, pt_mask):
             row = {}
-            row['score'] = float(pred)
             if used_ptyp != -1:
                 row['model'] = "{}_ptyp".format(filter_class)
             else:
                 row['model'] = filter_class
+            row['score'] = float(pred[row['model']])
             row['threshold_type'] = filter_type
             row['threshold_value'] = float(threshold)
-            row['is_rct'] = bool(pred >= threshold)
+            row['is_rct'] = bool(row['score'] >= threshold)
             row['ptyp_rct'] = int(used_ptyp)
+            row['preds'] = {k: float(v) for k, v in pred.items()}
             out.append(row)
         return out
 
@@ -208,7 +215,7 @@ class RCTRobot:
         for ris_row, pred_row in zip(ris_data, preds):
             if remove_non_rcts==False or pred_row['is_rct']:
                 ris_row.update({pred_key_map[k]: v for k, v in pred_row.items()})
-                
+
                 out.append(ris_row)
         return ris.dumps(out)
 

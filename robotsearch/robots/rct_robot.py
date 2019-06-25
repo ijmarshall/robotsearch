@@ -213,6 +213,7 @@ class RCTRobot:
         pred_key_map = {"score": "ZS", "model": "ZM", "threshold_type": "ZT", "threshold_value": "ZC", "is_rct": "ZR", "ptyp_rct": "ZP"}
 
         for ris_row, pred_row in zip(ris_data, preds):
+            pred_row.pop('preds') # not needed in this version
             if remove_non_rcts==False or pred_row['is_rct']:
                 ris_row.update({pred_key_map[k]: v for k, v in pred_row.items()})
 

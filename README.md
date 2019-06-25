@@ -139,4 +139,4 @@ This work is supported by: National Institutes of Health (NIH) under the Nationa
 
 If you use RobotSearch, we'd love it if you could cite our paper, and also let us know! (you can email mail@ijmarshall.com)
 
-[Marshall I, Storr AN, Kuiper J, Thomas J, Wallace BC. Machine Learning for Identifying Randomized Controlled Trials: an evaluation and practitioner's guide. Res Syn Meth. 2018. https://doi.org/10.1002/jrsm.1287](https://doi.org/10.1002/jrsm.1287)
+[Marshall IJ, Noel-Storr A, Kuiper J, Thomas J, Wallace BC. Machine Learning for Identifying Randomized Controlled Trials: an evaluation and practitioner's guide. Res Syn Meth. 2018. https://doi.org/10.1002/jrsm.1287](https://doi.org/10.1002/jrsm.1287)

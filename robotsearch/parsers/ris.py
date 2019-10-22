@@ -156,14 +156,14 @@ def simplify(article):
             out['ptyp'] = article['M3']
             ptyp_field_present = True
 
-        # have an explicit use_ptyp variable, which is automatically 
+        # have an explicit use_ptyp variable, which is automatically
         # detected
         # for PubMed, this will autoset to True for where
         # status = "MEDLINE". (and hence MeSH tagging is complete)
         # for Ovid, this will just check whether the MEDLINE database
         # was used (and if so, we have MeSH for all)
         # for all other options, we will only use title/abstract
-        
+
         if "MEDLINE" in article.get('STAT', []) and ptyp_field_present:
             # PubMed + MEDLINE article
             out['use_ptyp'] = True
@@ -172,6 +172,11 @@ def simplify(article):
             out['use_ptyp'] = True
         elif "MEDLINE" in article.get('DB', []) and "Ovid Technologies" in article.get('DP', []) and ptyp_field_present:
             # Endnote MEDLINE export
+            out['use_ptyp'] = True
+        elif "Embase" in article.get('DB', []) and "Ovid Technologies" in article.get('VN', []) and "MEDLINE" in article.get('NS', []) and 'MH' in article:
+            # Ovid EMBASE export, where record is derived from MEDLINE
+            out['ptyp'] = article['MH']
+            ptyp_field_present = True
             out['use_ptyp'] = True
         else:
             out['use_ptyp'] = False

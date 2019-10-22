@@ -107,12 +107,12 @@ class RCTRobot:
         if data_row['use_ptyp'] == False:
             return -1
         elif data_row['use_ptyp'] == True:
-            return 1 if any((tag in data_row['ptyp'] for tag in ["Randomized Controlled Trial", "D016449"])) else 0
+            return 1 if any((tag in data_row['ptyp'] for tag in ["randomized controlled trial", "Randomized Controlled Trial", "D016449"])) else 0
         else:
             raise Exception("unexpcted value for 'use_ptyp'")
 
 
-    def predict(self, X, filter_class="svm", filter_type="sensitive", auto_use_ptyp=True):
+    def predict(self, X, filter_class="svm", filter_type="sensitive", auto_use_ptyp=True, raw_scores=False):
 
 
         if isinstance(X, dict):
@@ -175,20 +175,28 @@ class RCTRobot:
         preds_d =[dict(zip(preds_l,i)) for i in zip(*preds_l.values())]
 
         out = []
-        for pred, threshold, used_ptyp in zip(preds_d, thresholds, pt_mask):
-            row = {}
-            if used_ptyp != -1:
-                row['model'] = "{}_ptyp".format(filter_class)
-            else:
-                row['model'] = filter_class
-            row['score'] = float(pred[row['model']])
-            row['threshold_type'] = filter_type
-            row['threshold_value'] = float(threshold)
-            row['is_rct'] = bool(row['score'] >= threshold)
-            row['ptyp_rct'] = int(used_ptyp)
-            row['preds'] = {k: float(v) for k, v in pred.items()}
-            out.append(row)
-        return out
+
+        if raw_scores:
+            return {"svms": svm_preds,
+                    "cnns": cnn_preds,
+                    "ptyps": pt_mask}
+
+        else:
+
+            for pred, threshold, used_ptyp in zip(preds_d, thresholds, pt_mask):
+                row = {}
+                if used_ptyp != -1:
+                    row['model'] = "{}_ptyp".format(filter_class)
+                else:
+                    row['model'] = filter_class
+                row['score'] = float(pred[row['model']])
+                row['threshold_type'] = filter_type
+                row['threshold_value'] = float(threshold)
+                row['is_rct'] = bool(row['score'] >= threshold)
+                row['ptyp_rct'] = int(used_ptyp)
+                row['preds'] = {k: float(v) for k, v in pred.items()}
+                out.append(row)
+            return out
 
 
 

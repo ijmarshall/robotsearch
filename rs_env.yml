@@ -1,22 +1,14 @@
 name: robotsearch
 dependencies:
 - python=3.6
-- Cython
 - Flask=1.0.2
 - h5py==2.7.1
-- murmurhash
-- nltk
 - numpy=1.16.1
 - python-dateutil=2.6.1
 - keras=2.1.5
 - PyYAML=3.12
 - scikit-learn
 - scipy
-- six=1.10.0
-- spacy
-- ujson=1.35
-- unicodecsv
-- Unidecode
 - pip:
     - gevent==1.2.2
     - tensorflow==1.5.0

@@ -142,9 +142,21 @@ def simplify(article):
         # this should work for both PubMed and the Ovid/Endnote format
         out = {"title": ' '.join(article.get('TI', article.get('T1', []))),
                "abstract": ' '.join(article.get('AB', []))}
+
+
+        # first check out for Endnote files
+
+
+
+        ptyp_field_present = False
         if 'PT' in article:
             out['ptyp'] = article['PT']
-        # have an explicit use_ptyp variable, which is automatically 
+            ptyp_field_present = True
+        elif 'M3' in article: # endnote format
+            out['ptyp'] = article['M3']
+            ptyp_field_present = True
+
+        # have an explicit use_ptyp variable, which is automatically
         # detected
         # for PubMed, this will autoset to True for where
         # status = "MEDLINE". (and hence MeSH tagging is complete)
@@ -152,17 +164,24 @@ def simplify(article):
         # was used (and if so, we have MeSH for all)
         # for all other options, we will only use title/abstract
 
-        
-        if "MEDLINE" in article.get('STAT', []):
+        if "MEDLINE" in article.get('STAT', []) and ptyp_field_present:
             # PubMed + MEDLINE article
             out['use_ptyp'] = True
-        elif "Ovid MEDLINE(R)" in article.get('DB', []):
+        elif "Ovid MEDLINE(R)" in article.get('DB', []) and ptyp_field_present:
             # Ovid + MEDLINE article
+            out['use_ptyp'] = True
+        elif "MEDLINE" in article.get('DB', []) and "Ovid Technologies" in article.get('DP', []) and ptyp_field_present:
+            # Endnote MEDLINE export
+            out['use_ptyp'] = True
+        elif "Embase" in article.get('DB', []) and "Ovid Technologies" in article.get('VN', []) and "MEDLINE" in article.get('NS', []) and 'MH' in article:
+            # Ovid EMBASE export, where record is derived from MEDLINE
+            out['ptyp'] = article['MH']
+            ptyp_field_present = True
             out['use_ptyp'] = True
         else:
             out['use_ptyp'] = False
     except:
-        raise Exception('Data was not recognised as Ovid or PubMed format')
+        raise Exception('Data format was not recognised')
     return out
 
 

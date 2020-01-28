@@ -30,13 +30,13 @@ RUN chown -R deploy.deploy /var/lib/deploy/
 
 USER deploy
 # install Anaconda
-RUN curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /var/lib/deploy/Anaconda.sh
+RUN curl https://repo.continuum.io/archive/Anaconda3-2019.03-Linux-x86_64.sh -o /var/lib/deploy/Anaconda.sh
 RUN cd /var/lib/deploy && bash Anaconda.sh -b && rm -rf Anaconda.sh
-ENV PATH=/var/lib/deploy/miniconda3/bin:$PATH
+ENV PATH=/var/lib/deploy/anaconda3/bin:$PATH
 ADD rs_env.yml tmp/rs_env.yml
 RUN conda env create -f tmp/rs_env.yml
 # from https://stackoverflow.com/questions/37945759/condas-source-activate-virtualenv-does-not-work-within-dockerfile
-ENV PATH /var/lib/deploy/miniconda3/envs/robotsearch/bin:$PATH
+ENV PATH /var/lib/deploy/anaconda3/envs/robotsearch/bin:$PATH
 #RUN python -m nltk.downloader punkt stopwords
 #RUN python -m spacy.en.download all
 

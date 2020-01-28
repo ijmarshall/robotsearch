@@ -10,7 +10,7 @@
 </head>
 
   <body>
-    
+
      <div class="site-wrapper">
 
       <div class="site-wrapper-inner">
@@ -23,24 +23,25 @@
               <nav class="nav nav-masthead">
                 <a class="nav-link active" href="#">Filter RCTs</a>
                 <a class="nav-link" href="/about">About</a>
-            
+
               </nav>
             </div>
           </div>
 
           <div class="inner cover">
             <h1 class="cover-heading">Just the RCTs, please.</h1>
-            <p class="lead">Upload an RIS file, and we will filter out articles that do not describe RCTs using our (highly accurate) machine learning model (details and validation <a href="https://doi.org/10.1002/jrsm.1287"><u>here</u></a>). Powered by by <a href="http://www.robotreviewer.net">RobotReviewer</a>. 
+            <p class="lead">Upload an RIS file, and we will filter out articles that do not describe RCTs using our (highly accurate) machine learning model (details and validation <a href="https://doi.org/10.1002/jrsm.1287"><u>here</u></a>). Powered by by <a href="http://www.robotreviewer.net">RobotReviewer</a>.
              </p>
-   
+
 
             <form method=post enctype=multipart/form-data>
               <input type=file name=file>
               <input type=submit value=Upload>
               <br/>
-              <input type=radio name=model value=sensitive checked> Maximise sensitivity (use for systematic reviews)<br>
-              <input type=radio name=model value=precise> Maximise precision<br>
-              
+              <input type=radio name=model value=sensitive checked> Sensitive model (use for systematic reviews)<br>
+              <input type=radio name=model value=precise> Precise model<br>
+              <input type=radio name=model value=balanced> Balanced model<br>
+
             </form>
 
 
@@ -54,7 +55,7 @@
             </div>
           </div>
 
-       
+
 
       </div>
 

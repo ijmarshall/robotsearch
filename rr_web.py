@@ -60,20 +60,22 @@ def hello():
 
 @app.route('/uploaded_RIS/<model>/<filename>')
 def uploaded_RIS(filename, model):
-    
-        
+
+
     # auto choose the right model
     if model == 'sensitive':
         fc = 'svm'
     elif model == 'precise':
         fc = 'cnn'
+    elif model == 'balanced':
+        fc = 'svm_cnn'
     else:
         abort(404)
 
     f_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     RIS_data = open(f_path, 'r').read()
     filtered = rct_clf.filter_articles(RIS_data, filter_type=model, filter_class=fc)
-    
+
     # ok, now dump out to file
     out_f_path =  os.path.join(app.config['FILTERED_FOLDER'], filename)
     with open(out_f_path, 'w') as out_f:
@@ -81,8 +83,8 @@ def uploaded_RIS(filename, model):
 
     download_path = url_for('download', filename=filename)
     download_file_name = "robotsearch-" + model + "-filter-" + filename
-    return render_template("download_ready.html", 
-                            download_path=download_path, 
+    return render_template("download_ready.html",
+                            download_path=download_path,
 
                             target_file_name=download_file_name)
 

@@ -141,7 +141,7 @@ def simplify(article):
     try:
         # this should work for both PubMed and the Ovid/Endnote format
         out = {"title": ' '.join(article.get('TI', article.get('T1', []))),
-               "abstract": ' '.join(article.get('AB', []))}
+               "abstract": ' '.join(article.get('AB', article.get('N2', [])))}
 
 
         # first check out for Endnote files
